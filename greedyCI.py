@@ -24,6 +24,12 @@ def factorial(n, nmax=100):
         return n**n - n ### THIS CAN BE IMPROVED
 
 def log_factorial(n, nmax=100):
+    """
+    if n<nmax:
+        compute factorial directly
+    else:
+        use Sterling's approximation
+    """
     if n == 0:
         return 0
     elif n < nmax:
@@ -78,30 +84,20 @@ def poisson_greedyLOW2greedyHIGH(kLOW, n, rtol=1e-6, atol=1e-6):
     dp = abs(pLOW-pHIGH)
     while (dp > atol) or (2*dp > rtol*(pLOW+pHIGH)):
         ### predict new kHIGH, compute new pHIGH
-        dpdkHIGH = poisson_dpdk(n, kHIGH)
-
-        kHIGH = kHIGH - (pHIGH-pLOW)/dpdkHIGH
+        kHIGH = kHIGH - (pHIGH-pLOW)/poisson_dpdk(n, kHIGH)
         pHIGH = poisson_pdf(n, kHIGH)
         dp = abs(pLOW-pHIGH)
-
     return kHIGH
 
 def poisson_weight(n, klow, khigh, npts=1001):
     """
-    computes the weight betweeen kLOW and kHIGH
+    computes the weight betweeen kLOW and kHIGH using a trapazoidal approximation
     """
-    ### either used closed form "incomplete gamma distribution" or compute numerically....
     k = np.linspace(klow, khigh, npts)
-
-    ### trapazoidal approximation
-    weight = 0.5*poisson_pdf(n, k[0]) ### normalization is wrong?
+    weight = 0.5 * (poisson_pdf(n, k[0]) + poisson_pdf(n, k[-1]))
     for ind, K in enumerate(k[1:-1]):
         weight += poisson_pdf(n, K)
-    weight += 0.5*poisson_pdf(n, k[-1])
-
-    weight *= (k[1]-k[0]) ### multiply by spacing
-
-    return weight
+    return weight*(k[1]-k[0])
 
 def poisson_bs(conf, n, rtol=1e-6, atol=1e-6):
     """
@@ -135,10 +131,49 @@ def poisson_bs(conf, n, rtol=1e-6, atol=1e-6):
         dp = pm - conf
         absdp = abs(dp)
 
-    return [kLOW_m, kHIGH]
+    return kLOW_m, kHIGH
+
+#===================================================================================================
+# BINOMIAL DISTRIBUTION
+#===================================================================================================
 
 
+def binomial_pdf(n, N, k):
+    """
+    p(n|N,k) = choose(N, n) * k**n * (1-k)**(N-n) 
+    """
+    return factorial(N) / (factorial(n) * factorial(N-n)) * k**n * (1-k)**(N-n)
 
+def binomial_dpdk(n, N, k):
+    """
+    dp/dk = choose(N, n) * (n*(1-k) - (N-n)*k) * k**(n-1) * (1-k)**(N-n-1)
+    """
+    return factorial(N) / (factorial(n) * factorial(N-n)) * (n - N*k) * k**(n-1) * (1-k)**(N-n-1)
 
+def binomial_map(n, N, alpha=0, beta=0):
+    """
+    compute MAP for probability of success assuming a beta distribution as a prior with parameters alpha and beta
+    """
+    raise StandardError
 
+def binomial_greedyLOW2greedyHIGH(kLOW, n, N, rtol=1e-6, atol=1e-6):
+    """
+    finds kHIGH given kLOW such that p(kLOW|n,N) = p(kHIGH|n,N)
+    """
+    raise StandardError
 
+def binomial_weight(n, N, klow, khigh, npts=1001):
+    """
+    computes the wight between klow and khigh using a trapazoidal approximation
+    """
+    k = np.linspace(klow, khigh, npts)
+    weight = 0.5 * (binomial_pdf(n, N, k[0]) + binomial_pdf(n, N, k[-1]) )
+    for ind, K in enumerate(k[1:-1]):
+        weight += binomial_pdf(n, N, K)
+    return weight*(k[1]-k[0])
+
+def binomial_bs(conf, n, N, rtol=1e-6, atol=1e-6):
+    """
+    performs a bisection search to find the greedy confidence region corresponding to confidence "conf"
+    """
+    raise StandardError
