@@ -154,13 +154,33 @@ def binomial_map(n, N, alpha=0, beta=0):
     """
     compute MAP for probability of success assuming a beta distribution as a prior with parameters alpha and beta
     """
-    raise StandardError
+    print "WARNING: binomial_map currently ignores alpha, beta keyword arguments"
+    return 1.0*n/N
 
 def binomial_greedyLOW2greedyHIGH(kLOW, n, N, rtol=1e-6, atol=1e-6):
     """
     finds kHIGH given kLOW such that p(kLOW|n,N) = p(kHIGH|n,N)
     """
-    raise StandardError
+    kMAP = poisson_map(n)
+    if kLOW == kMAP:
+        return kMAP
+    if kMAP==0 or kMAP==1:
+        raise ValueError("special case of kMAP that I don't know how to handle...")
+
+    pLOW = binomial_pdf(n, N, kLOW)
+
+    raise StandardError("WRITE ME")
+
+#    kHIGH = kMAP + (kMAP-kLOW) ### reflect kLOW around kMAP as a starting point
+#    pHIGH = poisson_pdf(n, kHIGH)
+#
+#    dp = abs(pLOW-pHIGH)
+#    while (dp > atol) or (2*dp > rtol*(pLOW+pHIGH)):
+#        ### predict new kHIGH, compute new pHIGH
+#        kHIGH = kHIGH - (pHIGH-pLOW)/poisson_dpdk(n, kHIGH)
+#        pHIGH = poisson_pdf(n, kHIGH)
+#        dp = abs(pLOW-pHIGH)
+#    return kHIGH
 
 def binomial_weight(n, N, klow, khigh, npts=1001):
     """
@@ -176,4 +196,36 @@ def binomial_bs(conf, n, N, rtol=1e-6, atol=1e-6):
     """
     performs a bisection search to find the greedy confidence region corresponding to confidence "conf"
     """
-    raise StandardError
+
+    raise StandardError("WRITE ME")
+
+#    kLOW_l = 0
+#    kLOW_r = poisson_map(n, alpha=1, beta=0)
+#    if kLOW_r == kLOW_l: # kMAP==0
+#        raise ValueError("special case when kLOW_r == kLOW_l == 0")
+#    else:
+#        kLOW_m = 0.5*kLOW_r
+#        kHIGH = poisson_greedyLOW2greedyHIGH(kLOW_m, n, rtol=rtol, atol=atol)
+#
+#    pl = 1
+#    pr = 0
+#    pm = poisson_weight( n, kLOW_m, kHIGH )
+#
+#    dp = pm - conf
+#    absdp = abs(dp)
+#    while (absdp > atol) or (2*absdp > rtol*(conf+pm)):
+#
+#        if dp > 0: ### too much confidence -> move to the right
+#            kLOW_l = kLOW_m
+#        else: ### too little confidence -> move to the left
+#            kLOW_r = kLOW_m
+#
+#        kLOW_m = 0.5*(kLOW_l + kLOW_r)
+#        kHIGH = poisson_greedyLOW2greedyHIGH(kLOW_m, n, rtol=rtol, atol=atol)
+#        pm = poisson_weight( n, kLOW_m, kHIGH )
+#        dp = pm - conf
+#        absdp = abs(dp)
+#
+#    return kLOW_m, kHIGH
+
+
